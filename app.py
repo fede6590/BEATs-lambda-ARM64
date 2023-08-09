@@ -62,9 +62,10 @@ def get_label(label_pred):
 
 
 def lambda_handler(event, context):
-    if model is None:
+    if 'model' not in globals():
         # Load model
         model_path = 'model.pt'
+        global model
         model = model_load(model_path)
     # Download .wav
     audio_path = download_audio(event)

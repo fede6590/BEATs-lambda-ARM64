@@ -21,7 +21,7 @@ logger = logging.getLogger(__name__)
 logger.setLevel(logging.INFO)
 logger.addHandler(logging.StreamHandler(sys.stdout))
 
-device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+# device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
 
 def model_load(model_path):
@@ -46,10 +46,10 @@ def download_audio(event):
 
 
 def pre_process(audio_path):
-    logger.info("Pre-process")
-    # torchaudio.set_audio_backend("soundfile")
+    torchaudio.set_audio_backend("soundfile")
     waveform, sr = torchaudio.load(audio_path)
     if sr != 16000:
+        logger.info("Resampling...")
         waveform = torchaudio.transforms.Resample(sr, 16000)(waveform)
     return waveform
 

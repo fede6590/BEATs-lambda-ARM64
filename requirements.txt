@@ -2,9 +2,9 @@
 -f https://files.pythonhosted.org/packages/dc/9c/4d2d65618034ed9833e8997c74b1bf77e3a73c4be0a2b2f80bd9f3c5988b/torchaudio-2.0.2-cp311-cp311-manylinux2014_aarch64.whl
 -f https://files.pythonhosted.org/packages/50/67/3e966d99a07d60a21a21d7ec016e9e4c2642a86fea251ec68677daf71d4d/numpy-1.25.2-cp311-cp311-manylinux_2_17_aarch64.manylinux2014_aarch64.whl
 -f https://files.pythonhosted.org/packages/2f/83/07bbd31d54f8cfbb30cd09802c2eced29a50324f746520eefd69cc7002f6/boto3-1.28.22-py3-none-any.whl
--f https://files.pythonhosted.org/packages/dd/37/149dc7b4a9b9b88f20a4dda73f7fb0062acb1b630699f5980d45b5e7c93f/audiofile-1.3.0-py3-none-any.whl
+-f https://files.pythonhosted.org/packages/04/bc/cd845c2dbb4d257c744cd58a5bcdd9f6d235ca317e7e22e49564ec88dcd9/soundfile-0.12.1-py2.py3-none-any.whl
 torch==2.0.1
 torchaudio==2.0.2
 numpy==1.25.2
 boto3==1.28.22
-soundfile==1.3.0
+soundfile==0.12.1

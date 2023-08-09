@@ -10,6 +10,7 @@ COPY model.pt ${LAMBDA_TASK_ROOT}/
 
 # Install our dependencies
 COPY requirements.txt  .
+RUN pip install --upgrade pip
 RUN python3 -m pip install -r requirements.txt --target ${LAMBDA_TASK_ROOT}
 
 #Copy files

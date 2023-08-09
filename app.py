@@ -80,7 +80,8 @@ def lambda_handler(event, context):
             logger.info("Sending to model...")
             probs = model.extract_features(data, padding_mask=None)[0]
             logger.info("Inference done")
-            label_pred = probs.topk(k=1)[1].tolist()[0][0]
+            label_pred = probs.topk(k=1)[1].tolist()[0][0][0]
+            logger.info(f"Prediction successfull: {label_pred}")
             label = get_label(label_pred)
             logger.info(f"Label: {label}")
         return {

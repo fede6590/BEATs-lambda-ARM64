@@ -21,7 +21,7 @@ logger = logging.getLogger(__name__)
 logger.setLevel(logging.INFO)
 logger.addHandler(logging.StreamHandler(sys.stdout))
 
-# device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
 
 def model_load(model_path):
@@ -46,7 +46,6 @@ def download_audio(event):
 
 
 def pre_process(audio_path):
-    torchaudio.set_audio_backend("soundfile")
     waveform, sr = torchaudio.load(audio_path)
     if sr != 16000:
         logger.info("Resampling...")
@@ -63,6 +62,12 @@ def get_label(label_pred):
     return label
 
 
+def vCPUs(context):
+    vcpus = context.system["vcpus"]
+    with open("/tmp/possible_cpus", "w") as f:
+        f.write(str(vcpus))
+
+
 def lambda_handler(event, context):
     if 'model' not in globals():
         # Load model
@@ -72,13 +77,17 @@ def lambda_handler(event, context):
     logger.info("Model ready")
     # Download .wav
     audio_path = download_audio(event)
+    # Create a dummy file with the number of vCPUs
+    vCPUs(context)
     # Pre-process audio
     data = pre_process(audio_path)
     logger.info("Data ready")
     # Classify image
     try:
         with torch.no_grad():
+            logger.info("Sending to model...")
             probs = model.extract_features(data, padding_mask=None)[0]
+            logger.info("Inference done")
             label_pred = probs.topk(k=1)[1].tolist()[0][0]
             label = get_label(label_pred)
             logger.info(f"Label: {label}")

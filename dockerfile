@@ -8,7 +8,7 @@ RUN yum install -y libgomp
 COPY app.py ${LAMBDA_TASK_ROOT}/
 COPY model.pt ${LAMBDA_TASK_ROOT}/
 
-# Install our dependencies
+# Update pip and install our dependencies
 COPY requirements.txt  .
 RUN pip install --upgrade pip
 RUN python3 -m pip install -r requirements.txt --target ${LAMBDA_TASK_ROOT}

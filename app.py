@@ -62,12 +62,6 @@ def get_label(label_pred):
     return label
 
 
-def vCPUs(context):
-    vcpus = context.system["vcpus"]
-    with open("/tmp/possible_cpus", "w") as f:
-        f.write(str(vcpus))
-
-
 def lambda_handler(event, context):
     if 'model' not in globals():
         # Load model
@@ -77,8 +71,6 @@ def lambda_handler(event, context):
     logger.info("Model ready")
     # Download .wav
     audio_path = download_audio(event)
-    # Create a dummy file with the number of vCPUs
-    vCPUs(context)
     # Pre-process audio
     data = pre_process(audio_path)
     logger.info("Data ready")

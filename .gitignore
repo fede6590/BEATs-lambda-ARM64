@@ -1,2 +1,6 @@
 model.pt
 labelsOLD.csv
+dockerfileOLD
+labels.csv
+requirementsOLD.txt
+jsonify.ipynb

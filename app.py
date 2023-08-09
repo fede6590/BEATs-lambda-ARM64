@@ -55,10 +55,12 @@ def pre_process(audio_path):
 
 
 def get_label(label_pred):
-    with open("labels.json", "r") as f:
-        json_dict = json.load(f)
-    result = json_dict[str(label_pred)]
-    return result
+    if 'json_dict' not in globals():
+        global json_dict
+        with open("labels.json", "r") as f:
+            json_dict = json.load(f)
+    label = json_dict[str(label_pred)]
+    return label
 
 
 def lambda_handler(event, context):

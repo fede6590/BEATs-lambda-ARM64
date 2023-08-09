@@ -1,8 +1,6 @@
 -f https://files.pythonhosted.org/packages/f4/e5/003ac2b5b95cfea3a0a87150ede879daad446d581fdf967a8d7b2d4b6e05/torch-1.13.1-cp38-cp38-manylinux2014_aarch64.whl
 -f https://files.pythonhosted.org/packages/f2/b4/9eac8f2c692abd6ec21451c47c16a082eb5f2a1ae5cb3121db1f27b37c9a/torchaudio-0.13.1-cp38-cp38-manylinux2014_aarch64.whl
--f https://files.pythonhosted.org/packages/b2/87/e0a0e9a0ab9ede47192aa40887b7e31d048c98326a41d6b57c658d1a809d/pandas-1.5.3-cp38-cp38-manylinux_2_17_aarch64.manylinux2014_aarch64.whl
 -f https://files.pythonhosted.org/packages/2f/83/07bbd31d54f8cfbb30cd09802c2eced29a50324f746520eefd69cc7002f6/boto3-1.28.22-py3-none-any.whl
 torch==1.13.1
 torchaudio==0.13.1
-pandas==1.5.3
 boto3==1.28.22

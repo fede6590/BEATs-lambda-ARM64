@@ -31,7 +31,7 @@ def model_load(model_path):
     model = BEATs(cfg)
     model.load_state_dict(checkpoint['model'])
     model.eval()
-    return model, checkpoint
+    return model
 
 
 def download_audio(event):

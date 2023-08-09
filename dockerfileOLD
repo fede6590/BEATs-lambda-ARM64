@@ -1,4 +1,4 @@
-FROM public.ecr.aws/lambda/python:3.11-arm64
+FROM public.ecr.aws/lambda/python:3.8-arm64
 
 # Update yum and install libgomp
 RUN yum update -y

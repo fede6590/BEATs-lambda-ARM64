@@ -21,8 +21,6 @@ logger = logging.getLogger(__name__)
 logger.setLevel(logging.INFO)
 logger.addHandler(logging.StreamHandler(sys.stdout))
 
-device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
-
 
 def model_load(model_path):
     logger.info("Loading Model")

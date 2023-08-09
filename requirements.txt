@@ -1,11 +1,8 @@
--f https://download.pytorch.org/whl/torch-2.0.1-cp311-cp311-manylinux2014_aarch64.whl
--f https://download.pytorch.org/whl/torchaudio-2.0.2-cp311-cp311-manylinux2014_aarch64.whl
--f https://files.pythonhosted.org/packages/d6/90/e7d387f1a416b14e59290baa7a454a90d719baebbf77433ff1bdcc727800/pandas-2.0.3-cp311-cp311-manylinux_2_17_aarch64.manylinux2014_aarch64.whl
+-f https://files.pythonhosted.org/packages/f4/e5/003ac2b5b95cfea3a0a87150ede879daad446d581fdf967a8d7b2d4b6e05/torch-1.13.1-cp38-cp38-manylinux2014_aarch64.whl
+-f https://files.pythonhosted.org/packages/f2/b4/9eac8f2c692abd6ec21451c47c16a082eb5f2a1ae5cb3121db1f27b37c9a/torchaudio-0.13.1-cp38-cp38-manylinux2014_aarch64.whl
+-f https://files.pythonhosted.org/packages/b2/87/e0a0e9a0ab9ede47192aa40887b7e31d048c98326a41d6b57c658d1a809d/pandas-1.5.3-cp38-cp38-manylinux_2_17_aarch64.manylinux2014_aarch64.whl
 -f https://files.pythonhosted.org/packages/2f/83/07bbd31d54f8cfbb30cd09802c2eced29a50324f746520eefd69cc7002f6/boto3-1.28.22-py3-none-any.whl
--f https://files.pythonhosted.org/packages/04/bc/cd845c2dbb4d257c744cd58a5bcdd9f6d235ca317e7e22e49564ec88dcd9/soundfile-0.12.1-py2.py3-none-any.whl
--f https://files.pythonhosted.org/packages/50/67/3e966d99a07d60a21a21d7ec016e9e4c2642a86fea251ec68677daf71d4d/numpy-1.25.2-cp311-cp311-manylinux_2_17_aarch64.manylinux2014_aarch64.whl
-torchaudio
-boto3
-soundfile
-pandas
-numpy
+torch==1.13.1
+torchaudio==0.13.1
+pandas==1.5.3
+boto3==1.28.22

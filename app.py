@@ -46,7 +46,7 @@ def download_audio(event):
 
 def pre_process(audio_path):
     logger.info("Pre-process")
-    torchaudio.set_audio_backend("soundfile")
+    # torchaudio.set_audio_backend("soundfile")
     waveform, sr = torchaudio.load(audio_path)
     if sr != 16000:
         waveform = torchaudio.transforms.Resample(sr, 16000)(waveform)
@@ -62,9 +62,10 @@ def get_label(label_pred):
 
 
 def lambda_handler(event, context):
-    # Load model
-    model_path = 'model.pt'
-    model, checkpoint = model_load(model_path)
+    if model is None:
+        # Load model
+        model_path = 'model.pt'
+        model = model_load(model_path)
     # Download .wav
     audio_path = download_audio(event)
     # Pre-process audio

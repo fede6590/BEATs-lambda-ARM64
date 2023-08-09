@@ -1,4 +1,4 @@
-FROM public.ecr.aws/lambda/python:3.11-arm64
+FROM public.ecr.aws/lambda/python:3.8-arm64
 
 # Copy function code and models into /var/task
 COPY app.py ${LAMBDA_TASK_ROOT}/
@@ -7,9 +7,6 @@ COPY model.pt ${LAMBDA_TASK_ROOT}/
 # Install our dependencies
 COPY requirements.txt  .
 RUN python3 -m pip install -r requirements.txt --target ${LAMBDA_TASK_ROOT}
-
-# Install libgomp.so.1
-RUN yum install -y libgomp
 
 #Copy files
 COPY BEATs.py .

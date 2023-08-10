@@ -21,7 +21,6 @@ logger = logging.getLogger(__name__)
 logger.setLevel(logging.INFO)
 logger.addHandler(logging.StreamHandler(sys.stdout))
 
-device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 model = None
 json_dict = None
 
@@ -70,34 +69,30 @@ def get_label(label_pred):
 
 
 def lambda_handler(event, context):
+    model = model_load('model.pt')
+    logger.info("Model ready")
+    # Download .wav
+    audio_path = download_audio(event)
+    # Pre-process audio
+    data = pre_process(audio_path)
+    logger.info("Data ready")
+    # Classify image
     try:
-        num_cpus = torch.multiprocessing.cpu_count()
-        torch.set_num_threads(num_cpus)
-    finally:
-        model = model_load('model.pt')
-        logger.info("Model ready")
-        # Download .wav
-        audio_path = download_audio(event)
-        # Pre-process audio
-        data = pre_process(audio_path)
-        logger.info("Data ready")
-        # Classify image
-        try:
-            with torch.no_grad():
-                logger.info("Sending to model...")
-                probs = model.extract_features(data, padding_mask=None)[0]
-                logger.info(f"TENSOR DIMENSION: {probs.size()}")
-                logger.info("Inference done")
-                label_pred = probs.topk(k=1)[1].tolist()[0][0]
-                logger.info(f"Prediction successfull: {label_pred}")
-                label = get_label(label_pred)
-                logger.info(f"Label: {label}")
-            return {
-                'statusCode': 200,
-                'class': label
-            }
-        except:
-            return {
-                'statusCode': 404,
-                'class': None
-            }
+        with torch.no_grad():
+            logger.info("Sending to model...")
+            probs = model.extract_features(data, padding_mask=None)[0]
+            logger.info(f"TENSOR DIMENSION: {probs.size()}")
+            logger.info("Inference done")
+            label_pred = probs.topk(k=1)[1].tolist()[0][0]
+            logger.info(f"Prediction successfull: {label_pred}")
+            label = get_label(label_pred)
+            logger.info(f"Label: {label}")
+        return {
+            'statusCode': 200,
+            'class': label
+        }
+    except:
+        return {
+            'statusCode': 404,
+            'class': None
+        }

@@ -1,1 +1,5 @@
 *.pt
+*.wav
+*.ipynb
+local_req.txt
+__pycache__

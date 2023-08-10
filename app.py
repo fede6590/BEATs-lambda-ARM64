@@ -62,13 +62,50 @@ def get_label(label_pred):
     return label
 
 
+# def lambda_handler(event, context):
+#     if 'model' not in globals():
+#         # Load model
+#         model_path = os.path.join(os.environ['LAMBDA_TASK_ROOT'], 'model.pt')
+#         global model
+#         model = model_load(model_path)
+#     logger.info("Model ready")
+#     # Download .wav
+#     audio_path = download_audio(event)
+#     # Pre-process audio
+#     data = pre_process(audio_path)
+#     logger.info("Data ready")
+#     # Classify image
+#     try:
+#         with torch.no_grad():
+#             logger.info("Sending to model...")
+#             probs = model.extract_features(data, padding_mask=None)[0]
+#             logger.info("Inference done")
+#             label_pred = probs.topk(k=1)[1].tolist()[0][0][0]
+#             logger.info(f"Prediction successfull: {label_pred}")
+#             label = get_label(label_pred)
+#             logger.info(f"Label: {label}")
+#         return {
+#             'statusCode': 200,
+#             'class': label
+#         }
+#     except:
+#         return {
+#             'statusCode': 404,
+#             'class': None
+#         }
+
 def lambda_handler(event, context):
-    if 'model' not in globals():
+    if 'model1' not in globals():
         # Load model
-        model_path = os.path.join(os.environ['LAMBDA_TASK_ROOT'], 'model.pt')
-        global model
-        model = model_load(model_path)
-    logger.info("Model ready")
+        model_path1 = os.path.join(os.environ['LAMBDA_TASK_ROOT'], 'model1.pt')
+        global model1
+        model1 = model_load(model_path1)
+    if 'model2' not in globals():
+        # Load model
+        model_path2 = os.path.join(os.environ['LAMBDA_TASK_ROOT'], 'model2.pt')
+        global model2
+        model2 = model_load(model_path2)
+    logger.info("Models ready")
     # Download .wav
     audio_path = download_audio(event)
     # Pre-process audio
@@ -78,12 +115,17 @@ def lambda_handler(event, context):
     try:
         with torch.no_grad():
             logger.info("Sending to model...")
-            probs = model.extract_features(data, padding_mask=None)[0]
+            probs1 = model1.extract_features(data, padding_mask=None)[0]
+            probs2 = model2.extract_features(data, padding_mask=None)[0]
             logger.info("Inference done")
-            label_pred = probs.topk(k=1)[1].tolist()[0][0][0]
-            logger.info(f"Prediction successfull: {label_pred}")
-            label = get_label(label_pred)
-            logger.info(f"Label: {label}")
+            label_pred1 = probs1.topk(k=1)[1].tolist()[0][0][0]
+            label_pred2 = probs2.topk(k=1)[1].tolist()[0][0][0]
+            logger.info(f"Prediction successfull model1: {label_pred1}")
+            logger.info(f"Prediction successfull model1: {label_pred1}")
+            label1 = get_label(label_pred1)
+            label2 = get_label(label_pred2)
+            logger.info(f"Label model1: {label1}")
+            logger.info(f"Label model1: {label2}")
         return {
             'statusCode': 200,
             'class': label

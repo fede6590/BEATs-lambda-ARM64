@@ -128,7 +128,7 @@ def lambda_handler(event, context):
             logger.info(f"Label model1: {label2}")
         return {
             'statusCode': 200,
-            'class': label
+            'class': [label1, label2]
         }
     except:
         return {

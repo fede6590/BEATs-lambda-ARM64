@@ -1,4 +1,1 @@
-model.pt
-dockerfileOLD
-requirementsOLD.txt
-jsonify.ipynb
+*.pt

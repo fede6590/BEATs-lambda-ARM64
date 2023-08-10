@@ -22,15 +22,20 @@ logger.setLevel(logging.INFO)
 logger.addHandler(logging.StreamHandler(sys.stdout))
 
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+model = None
+json_dict = None
 
 
-def model_load(model_path):
-    logger.info("Loading model...")
-    checkpoint = torch.load(model_path)
-    cfg = BEATsConfig(checkpoint['cfg'])
-    model = BEATs(cfg)
-    model.load_state_dict(checkpoint['model'])
-    model.eval()
+def model_load(model_file):
+    global model
+    if model is None:
+        logger.info("Loading model...")
+        model_path = os.path.join(os.environ['LAMBDA_TASK_ROOT'], model_file)
+        checkpoint = torch.load(model_path)
+        cfg = BEATsConfig(checkpoint['cfg'])
+        model = BEATs(cfg)
+        model.load_state_dict(checkpoint['model'])
+        model.eval()
     return model
 
 
@@ -54,24 +59,18 @@ def pre_process(audio_path):
 
 
 def get_label(label_pred):
-    if type(label_pred) == list:
-        label_pred = label_pred[0]
-    if 'json_dict' not in globals():
-        global json_dict
+    global json_dict
+    if json_dict is None:
         with open("labels.json", "r") as f:
             json_dict = json.load(f)
+    if type(label_pred) == list:
+        label_pred = label_pred[0]
     label = json_dict[str(label_pred)]
     return label
 
 
 def lambda_handler(event, context):
-    model_path = os.path.join(os.environ['LAMBDA_TASK_ROOT'], 'model.pt')
-    model = model_load(model_path)
-    # if 'model' not in globals():
-    #     # Load model
-    #     model_path = os.path.join(os.environ['LAMBDA_TASK_ROOT'], 'model.pt')
-    #     global model
-    #     model = model_load(model_path)
+    model = model_load('model.pt')
     logger.info("Model ready")
     # Download .wav
     audio_path = download_audio(event)

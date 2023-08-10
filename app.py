@@ -21,6 +21,9 @@ logger = logging.getLogger(__name__)
 logger.setLevel(logging.INFO)
 logger.addHandler(logging.StreamHandler(sys.stdout))
 
+device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+
+# Initiating global variables
 model = None
 json_dict = None
 
@@ -35,7 +38,7 @@ def model_load(model_file):
         model = BEATs(cfg)
         model.load_state_dict(checkpoint['model'])
         model.eval()
-    return model
+    return model.to(device)
 
 
 def download_audio(event):
@@ -54,7 +57,7 @@ def pre_process(audio_path):
     if sr != 16000:
         logger.info("Resampling...")
         waveform = torchaudio.transforms.Resample(sr, 16000)(waveform)
-    return waveform
+    return waveform.to(device)
 
 
 def get_label(label_pred):
@@ -71,20 +74,15 @@ def get_label(label_pred):
 def lambda_handler(event, context):
     model = model_load('model.pt')
     logger.info("Model ready")
-    # Download .wav
     audio_path = download_audio(event)
-    # Pre-process audio
     data = pre_process(audio_path)
     logger.info("Data ready")
-    # Classify image
     try:
         with torch.no_grad():
             logger.info("Sending to model...")
             probs = model.extract_features(data, padding_mask=None)[0]
-            logger.info(f"TENSOR DIMENSION: {probs.size()}")
             logger.info("Inference done")
             label_pred = probs.topk(k=1)[1].tolist()[0][0]
-            logger.info(f"Prediction successfull: {label_pred}")
             label = get_label(label_pred)
             logger.info(f"Label: {label}")
         return {

@@ -40,7 +40,7 @@ def download_model(bucket, key):
         try:
             s3_resource = boto3.resource('s3')
             s3_resource.Object(bucket, key).download_file(location)
-            print(f"Model downloaded to '{location}")
+            print(f"Model downloaded to {location}")
         except Exception as e:
             print("An error occurred: ", e)
     else:

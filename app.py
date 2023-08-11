@@ -34,7 +34,7 @@ KEY = os.environ['KEY']
 
 
 def download_model(bucket, key):
-    location = os.path.join('tmp', os.path.basename(key))
+    location = f'/tmp/{os.path.basename(key)}'
     if not os.path.isfile(location):
         logger.info(f'Downloading {key} from {bucket} bucket to {location}')
         try:

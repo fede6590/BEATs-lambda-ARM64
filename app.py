@@ -38,7 +38,8 @@ def download_model(bucket, key):
     if not os.path.isfile(location):
         logger.info(f'Downloading {key} from {bucket} bucket to {location}')
         try:
-            s3.download_file(bucket, key, location)
+            s3_resource = boto3.resource('s3')
+            s3_resource.Object(bucket, key).download_file(location)
             print(f"Model downloaded to '{location}")
         except Exception as e:
             print("An error occurred: ", e)

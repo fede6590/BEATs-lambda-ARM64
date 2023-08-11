@@ -25,7 +25,7 @@ device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
 # Initiating global variables
 model = None
-masked_labels = None
+final_labels = None
 
 # Catching environment variables
 TASKROOT = os.environ['LAMBDA_TASK_ROOT']
@@ -96,8 +96,8 @@ def filter_from_mask(labels_json, mask_json):
 
 
 def get_labels(pred, k, masked):
-    if 'masked_labels' not in globals():
-        global masked_labels
+    if 'final_labels' not in globals():
+        global final_labels
         if masked == 'y':
             final_labels = filter_from_mask("labels.json", "mask.json")
         else:

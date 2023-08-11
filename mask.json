@@ -1,0 +1,43 @@
+{"Speech": 
+["Speech",
+"Conversation",
+"Narration, monologue",
+"Speech synthesizer",
+"Yell",
+"Shout",
+"Screaming",
+"Whispering",
+"Giggle",
+"Snicker",
+"Belly laugh",
+"Chuckle, chortle"
+],
+"Cry":
+["Babbling",
+"Shout",
+"Whoop",
+"Baby laughter",
+"Crying, sobbing",
+"Baby cry, infant cry",
+"Whimper",
+"Wail, moan",
+"Sigh",
+"Groan"
+],
+"Dog":
+["Grunt",
+"Animal",
+"Domestic animals, pets",
+"Dog",
+"Bark",
+"Howl",
+"Bow-wow",
+"Growling",
+"Whimper (dog)",
+"Canidae, dogs, wolves"
+],
+"Cat":
+["Cat",
+"Purr"
+]
+}

@@ -25,7 +25,7 @@ device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
 # Initiating global variables
 model = None
-json_dict = None
+masked_labels = None
 
 # Catching environment variables
 TASKROOT = os.environ['LAMBDA_TASK_ROOT']
@@ -34,9 +34,9 @@ KEY = os.environ['KEY']
 
 
 def download_model(bucket, key):
-    location = os.path.join(TASKROOT, os.path.basename(key))
+    location = os.path.join('tmp', os.path.basename(key))
     if not os.path.isfile(location):
-        logger.info(f'Downloading {key} from {bucket} bucket...')
+        logger.info(f'Downloading {key} from {bucket} bucket to {location}')
         try:
             s3.download_file(bucket, key, location)
             print(f"Model downloaded to '{location}")
@@ -79,16 +79,37 @@ def pre_process(audio_path):
     return waveform.to(device)
 
 
-def get_labels(pred, k):
-    if 'json_dict' not in globals():
-        global json_dict
-        with open("labels.json", "r") as f:
-            json_dict = json.load(f)
+def get_key_from_value(input_value, data_dict):
+    for key, values in data_dict.items():
+        if input_value in values:
+            return key
+    return None
+
+
+def filter_from_mask(labels_json, mask_json):
+    with open(labels_json, "r") as f:
+        json_labs = json.load(f)
+        with open(mask_json, "r") as g:
+            mask = json.load(g)
+    final_labels = {key: get_key_from_value(value, mask) for key, value in json_labs.items()}
+    return final_labels
+
+
+def get_labels(pred, k, masked):
+    if 'masked_labels' not in globals():
+        global masked_labels
+        if masked == 'y':
+            final_labels = filter_from_mask("labels.json", "mask.json")
+        else:
+            with open("labels.json", "r") as f:
+                final_labels = json.load(f)
     labs = pred.topk(k)[1].tolist()[0]
     probs = pred.topk(k)[0].tolist()[0]
     labels = {}
     for i, lab in enumerate(labs):
-        labels[json_dict[str(lab)]] = probs[i]
+        final_lab = final_labels[str(lab)]
+        if final_lab is not None:
+            labels[final_lab] = probs[i]
     return labels
 
 
@@ -103,8 +124,9 @@ def lambda_handler(event, context):
             logger.info("Sending to model...")
             pred = model.extract_features(data, padding_mask=None)[0]
         logger.info("Inference done")
-        labels = get_labels(pred, 5)
-        first = list(labels.items())[0] if list(labels.items()) else (None, None)
+        labels = get_labels(pred, 5, masked='y')
+        first = list(labels.items())
+        first = first[0] if first else (None, None)
         logger.info(f"Most probable: {first}")
         logger.info(f"Labels: {labels}")
         return {

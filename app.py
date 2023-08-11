@@ -97,8 +97,8 @@ def filter_from_mask(labels_json, mask_json):
 
 
 def get_labels(pred, k, masked):
-    if 'final_labels' not in globals():
-        global final_labels
+    global final_labels
+    if final_labels is None:
         if masked == 'y':
             final_labels = filter_from_mask("labels.json", "mask.json")
         else:

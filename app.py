@@ -68,8 +68,8 @@ def get_labels(pred, k):
     labs = pred.topk(k)[1].tolist()[0]
     probs = pred.topk(k)[0].tolist()[0]
     labels = {}
-    for i in range(len(labs)):
-        labels[json_dict[str(labs[i])]] = probs[i]
+    for i, lab in enumerate(labs):
+        labels[json_dict[str(lab)]] = probs[i]
     return labels
 
 

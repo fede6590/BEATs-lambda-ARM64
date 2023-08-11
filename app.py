@@ -12,22 +12,19 @@ import boto3
 # Local Dependencies:
 from BEATs import BEATs, BEATsConfig
 
-logger = logging.getLogger()
-logger.setLevel(logging.INFO)
-s3 = boto3.client('s3')
-
 # Logs
 logger = logging.getLogger(__name__)
 logger.setLevel(logging.INFO)
 logger.addHandler(logging.StreamHandler(sys.stdout))
 
-device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
-
 # Initiating global variables
+s3 = boto3.client('s3')
+device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 model = None
 final_labels = None
 
-# Catching environment variables
+# Setting and catching environment variables
+os.environ["CPUINFO_ALLOW_UNDEFINED_FLAGS"] = "1"
 TASKROOT = os.environ['LAMBDA_TASK_ROOT']
 BUCKET = os.environ['BUCKET']
 KEY = os.environ['KEY']

@@ -27,13 +27,30 @@ device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 model = None
 json_dict = None
 
+# Environment variables
+ENV_PATH = os.environ['LAMBDA_TASK_ROOT']
+BUCKET = os.environ['BUCKET']
+KEY = os.environ['KEY']
 
-def model_load(model_file):
+
+def download_model(bucket='', key=''):
+    location = os.path.join(ENV_PATH, os.path.basename(key))
+    if not os.path.isfile(location):
+        logger.info("Downloading model...")
+        s3_resource = boto3.resource('s3')
+        s3_resource.Object(bucket, key).download_file(location)
+        logger.info(f"Done: {location}")
+    else:
+        logger.info("Model already downloaded")
+    return location
+
+
+def model_load():
     global model
     if model is None:
+        location = download_model(BUCKET, KEY)
         logger.info("Loading model...")
-        model_path = os.path.join(os.environ['LAMBDA_TASK_ROOT'], model_file)
-        checkpoint = torch.load(model_path)
+        checkpoint = torch.load(location)
         cfg = BEATsConfig(checkpoint['cfg'])
         model = BEATs(cfg)
         model.load_state_dict(checkpoint['model'])
@@ -74,7 +91,7 @@ def get_labels(pred, k):
 
 
 def lambda_handler(event, context):
-    model = model_load('model.pt')
+    model = model_load()
     logger.info("Model ready")
     audio_path = download_audio(event)
     data = pre_process(audio_path)
@@ -83,9 +100,9 @@ def lambda_handler(event, context):
         with torch.no_grad():
             logger.info("Sending to model...")
             pred = model.extract_features(data, padding_mask=None)[0]
-            logger.info("Inference done")
-            labels = get_labels(pred, 5)
-            logger.info(f"Labels: {labels}")
+        logger.info("Inference done")
+        labels = get_labels(pred, 5)
+        logger.info(f"Labels: {labels}")
         return {
             'statusCode': 200,
             'class': labels

@@ -6,7 +6,6 @@ RUN yum install -y libgomp
 
 # Copy function code and models into /var/task
 COPY app.py ${LAMBDA_TASK_ROOT}/
-COPY model.pt ${LAMBDA_TASK_ROOT}/
 
 # Update pip and install our dependencies
 COPY requirements.txt  .

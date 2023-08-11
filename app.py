@@ -27,19 +27,21 @@ device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 model = None
 json_dict = None
 
-# Environment variables
-ENV_PATH = os.environ['LAMBDA_TASK_ROOT']
+# Catching environment variables
+TASKROOT = os.environ['LAMBDA_TASK_ROOT']
 BUCKET = os.environ['BUCKET']
 KEY = os.environ['KEY']
 
 
-def download_model(bucket='', key=''):
-    location = os.path.join(ENV_PATH, os.path.basename(key))
+def download_model(bucket, key):
+    location = os.path.join(TASKROOT, os.path.basename(key))
     if not os.path.isfile(location):
-        logger.info("Downloading model...")
-        s3_resource = boto3.resource('s3')
-        s3_resource.Object(bucket, key).download_file(location)
-        logger.info(f"Done: {location}")
+        logger.info(f'Downloading {key} from {bucket} bucket...')
+        try:
+            s3.download_file(bucket, key, location)
+            print(f"Model downloaded to '{location}")
+        except Exception as e:
+            print("An error occurred: ", e)
     else:
         logger.info("Model already downloaded")
     return location
@@ -49,7 +51,7 @@ def model_load():
     global model
     if model is None:
         location = download_model(BUCKET, KEY)
-        logger.info("Loading model...")
+        logger.info(f"Loading model to {device}...")
         checkpoint = torch.load(location)
         cfg = BEATsConfig(checkpoint['cfg'])
         model = BEATs(cfg)
@@ -102,6 +104,8 @@ def lambda_handler(event, context):
             pred = model.extract_features(data, padding_mask=None)[0]
         logger.info("Inference done")
         labels = get_labels(pred, 5)
+        first = list(labels.items())[0] if list(labels.items()) else (None, None)
+        logger.info(f"Most probable: {first}")
         logger.info(f"Labels: {labels}")
         return {
             'statusCode': 200,

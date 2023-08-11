@@ -60,15 +60,17 @@ def pre_process(audio_path):
     return waveform.to(device)
 
 
-def get_label(label_pred):
-    global json_dict
-    if json_dict is None:
+def get_labels(pred, k):
+    if 'json_dict' not in globals():
+        global json_dict
         with open("labels.json", "r") as f:
             json_dict = json.load(f)
-    if type(label_pred) == list:
-        label_pred = label_pred[0]
-    label = json_dict[str(label_pred)]
-    return label
+    labs = pred.topk(k)[1].tolist()[0]
+    probs = pred.topk(k)[0].tolist()[0]
+    labels = {}
+    for i in range(len(labs)):
+        labels[json_dict[str(labs[i])]] = probs[i]
+    return labels
 
 
 def lambda_handler(event, context):
@@ -80,14 +82,13 @@ def lambda_handler(event, context):
     try:
         with torch.no_grad():
             logger.info("Sending to model...")
-            probs = model.extract_features(data, padding_mask=None)[0]
+            pred = model.extract_features(data, padding_mask=None)[0]
             logger.info("Inference done")
-            label_pred = probs.topk(k=1)[1].tolist()[0][0]
-            label = get_label(label_pred)
-            logger.info(f"Label: {label}")
+            labels = get_labels(pred, 5)
+            logger.info(f"Labels: {labels}")
         return {
             'statusCode': 200,
-            'class': label
+            'class': labels
         }
     except:
         return {

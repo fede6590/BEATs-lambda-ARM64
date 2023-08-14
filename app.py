@@ -25,7 +25,6 @@ KEY = os.environ['KEY']
 # Global variables
 s3 = boto3.client('s3')
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
-model = None
 final_labels = None
 
 
@@ -55,6 +54,11 @@ def load_model():
         model.load_state_dict(checkpoint['model'])
         model.eval()
     return model.to(device)
+
+ 
+# Loading model as global variable
+model = load_model()
+logger.info("Model ready")
 
 
 def download_audio(event):
@@ -106,9 +110,6 @@ def get_labels(pred, k, masked):
 
 def lambda_handler(event, context):
     try:
-        model = load_model()
-        logger.info("Model ready")
-
         audio_path = download_audio(event)
         data = pre_process(audio_path)
         logger.info("Data ready")

@@ -17,17 +17,16 @@ logger = logging.getLogger(__name__)
 logger.setLevel(logging.INFO)
 logger.addHandler(logging.StreamHandler(sys.stdout))
 
-# Initiating global variables
+# Environment variables
+TASKROOT = os.environ['LAMBDA_TASK_ROOT']
+BUCKET = os.environ['BUCKET']
+KEY = os.environ['KEY']
+
+# Global variables
 s3 = boto3.client('s3')
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 model = None
 final_labels = None
-
-# Setting and catching environment variables
-os.environ["CPUINFO_ALLOW_UNDEFINED_FLAGS"] = "1"
-TASKROOT = os.environ['LAMBDA_TASK_ROOT']
-BUCKET = os.environ['BUCKET']
-KEY = os.environ['KEY']
 
 
 def download_model(bucket, key):
@@ -37,15 +36,15 @@ def download_model(bucket, key):
         try:
             s3_resource = boto3.resource('s3')
             s3_resource.Object(bucket, key).download_file(location)
-            print(f"Model downloaded to {location}")
+            logger.info(f"Model downloaded to {location}")
         except Exception as e:
-            print("An error occurred: ", e)
+            logger.error("An error occurred while downloading model: %s", e)
     else:
         logger.info("Model already downloaded")
     return location
 
 
-def model_load():
+def load_model():
     global model
     if model is None:
         location = download_model(BUCKET, KEY)
@@ -77,62 +76,61 @@ def pre_process(audio_path):
     return waveform.to(device)
 
 
-def get_key_from_value(input_value, data_dict):
-    for key, values in data_dict.items():
-        if input_value in values:
-            return key
-    return None
+def load_json_file(filename):
+    with open(filename, "r") as file:
+        data = json.load(file)
+    return data
 
 
 def filter_from_mask(labels_json, mask_json):
-    with open(labels_json, "r") as f:
-        json_labs = json.load(f)
-        with open(mask_json, "r") as g:
-            mask = json.load(g)
-    final_labels = {key: get_key_from_value(value, mask) for key, value in json_labs.items()}
+    labels = load_json_file(labels_json)
+    mask = load_json_file(mask_json)
+    final_labels = {key: mask.get(value) for key, value in labels.items()}
     return final_labels
 
 
 def get_labels(pred, k, masked):
-    global final_labels
-    if final_labels is None:
-        if masked == 'y':
-            final_labels = filter_from_mask("labels.json", "mask.json")
-        else:
-            with open("labels.json", "r") as f:
-                final_labels = json.load(f)
+    if masked == 'y':
+        final_labels = filter_from_mask("labels.json", "mask.json")
+    else:
+        final_labels = load_json_file("labels.json")
     labs = pred.topk(k)[1].tolist()[0]
     probs = pred.topk(k)[0].tolist()[0]
     labels = {}
-    for i, lab in enumerate(labs):
-        final_lab = final_labels[str(lab)]
+    for lab, prob in zip(labs, probs):
+        final_lab = final_labels.get(str(lab))
         if final_lab is not None:
-            labels[final_lab] = probs[i]
+            labels[final_lab] = prob
     return labels
 
 
 def lambda_handler(event, context):
-    model = model_load()
-    logger.info("Model ready")
-    audio_path = download_audio(event)
-    data = pre_process(audio_path)
-    logger.info("Data ready")
     try:
+        model = load_model()
+        logger.info("Model ready")
+
+        audio_path = download_audio(event)
+        data = pre_process(audio_path)
+        logger.info("Data ready")
+
         with torch.no_grad():
             logger.info("Sending to model...")
             pred = model.extract_features(data, padding_mask=None)[0]
         logger.info("Inference done")
+
         labels = get_labels(pred, 5, masked='y')
-        first = list(labels.items())
-        first = first[0] if first else (None, None)
+        first = next(iter(labels.items()), (None, None))
+
         logger.info(f"Most probable: {first}")
         logger.info(f"Labels: {labels}")
+
         return {
             'statusCode': 200,
             'class': labels
         }
-    except:
+    except Exception as e:
+        logger.error("An error occurred: %s", e)
         return {
-            'statusCode': 404,
+            'statusCode': 500,
             'class': None
         }

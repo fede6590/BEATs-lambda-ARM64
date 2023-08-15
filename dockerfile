@@ -16,8 +16,6 @@ RUN python3 -m pip install -r requirements.txt --target ${LAMBDA_TASK_ROOT}
 COPY BEATs.py .
 COPY backbone.py .
 COPY modules.py .
-COPY labels.json .
-COPY mask.json .
 
 # Set the CMD to your handler 
 CMD [ "app.lambda_handler"]

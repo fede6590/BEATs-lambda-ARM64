@@ -2,7 +2,6 @@
 import logging
 import sys
 import os
-import json
 
 # External Dependencies:
 import torch
@@ -25,7 +24,7 @@ KEY = os.environ['KEY']
 # Global variables
 s3 = boto3.client('s3')
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
-final_labels = None
+model = None
 
 
 def download_model(bucket, key):
@@ -43,21 +42,22 @@ def download_model(bucket, key):
     return location
 
 
-def load_model():
+def load_model(location):
     global model
     if model is None:
-        location = download_model(BUCKET, KEY)
         logger.info(f"Loading model to {device}...")
         checkpoint = torch.load(location)
         cfg = BEATsConfig(checkpoint['cfg'])
         model = BEATs(cfg)
         model.load_state_dict(checkpoint['model'])
         model.eval()
+    else:
+        logger.info("Model already loaded")
     return model.to(device)
 
- 
+
 # Loading model as global variable
-model = load_model()
+model = load_model(download_model(BUCKET, KEY))
 logger.info("Model ready")
 
 
@@ -74,38 +74,26 @@ def download_audio(event):
 
 def pre_process(audio_path):
     waveform, sr = torchaudio.load(audio_path)
+    logger.info(f"Sample rate = {sr}")
     if sr != 16000:
         logger.info("Resampling...")
         waveform = torchaudio.transforms.Resample(sr, 16000)(waveform)
     return waveform.to(device)
 
 
-def load_json_file(filename):
-    with open(filename, "r") as file:
-        data = json.load(file)
-    return data
-
-
-def filter_from_mask(labels_json, mask_json):
-    labels = load_json_file(labels_json)
-    mask = load_json_file(mask_json)
-    final_labels = {key: mask.get(value) for key, value in labels.items()}
-    return final_labels
-
-
-def get_labels(pred, k, masked):
-    if masked == 'y':
-        final_labels = filter_from_mask("labels.json", "mask.json")
-    else:
-        final_labels = load_json_file("labels.json")
-    labs = pred.topk(k)[1].tolist()[0]
-    probs = pred.topk(k)[0].tolist()[0]
-    labels = {}
-    for lab, prob in zip(labs, probs):
-        final_lab = final_labels.get(str(lab))
-        if final_lab is not None:
-            labels[final_lab] = prob
-    return labels
+def get_label(label_pred):
+    indices_list = label_pred[1][0].tolist()
+    for value in indices_list:
+        if value in [20, 404, 520, 151, 515, 522, 429, 199, 50, 433, 344, 34, 413, 244, 155, 245, 242]:
+            return "Speech"
+        elif value in [284, 19, 473, 498, 395, 81, 431, 62, 410]:
+            return "Baby Crying"
+        elif value in [323, 149, 339, 480, 488, 400, 150, 157]:
+            return "Dog"
+        elif value in [335, 221, 336, 277]:
+            return "Cat"
+        else:
+            return "No Value"
 
 
 def lambda_handler(event, context):
@@ -119,15 +107,14 @@ def lambda_handler(event, context):
             pred = model.extract_features(data, padding_mask=None)[0]
         logger.info("Inference done")
 
-        labels = get_labels(pred, 5, masked='y')
-        first = next(iter(labels.items()), (None, None))
-
-        logger.info(f"Most probable: {first}")
-        logger.info(f"Labels: {labels}")
+        label_pred = pred.topk(k=5)
+        label = get_label(label_pred)
+        logger.info(f"Label: {label}")
 
         return {
             'statusCode': 200,
-            'class': labels
+            'class': label,
+            'filename': event['Records'][0]['s3']['object']['key']
         }
     except Exception as e:
         logger.error("An error occurred: %s", e)

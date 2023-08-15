@@ -56,11 +56,6 @@ def load_model(location):
     return model.to(device)
 
 
-# Loading model as global variable
-model = load_model(download_model(BUCKET, KEY))
-logger.info("Model ready")
-
-
 def download_audio(event):
     logger.info("Downloading audio...")
     input_bucket_name = event['Records'][0]['s3']['bucket']['name']
@@ -98,6 +93,9 @@ def get_label(label_pred):
 
 def lambda_handler(event, context):
     try:
+        location = download_model(BUCKET, KEY)
+        model = load_model(location)
+        logger.info("Model ready")
         audio_path = download_audio(event)
         data = pre_process(audio_path)
         logger.info("Data ready")

@@ -9,7 +9,7 @@ import torchaudio
 import boto3
 
 # Local Dependencies:
-from BEATs import BEATs, BEATsConfig
+from model.BEATs import BEATs, BEATsConfig
 
 # Logs
 logger = logging.getLogger(__name__)
